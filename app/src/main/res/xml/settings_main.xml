@@ -16,4 +16,11 @@
         android:selectAllOnFocus="true"
         android:title="@string/settings_min_magnitude_label" />
 
+    <ListPreference
+        android:defaultValue="@string/settings_country_default"
+        android:entries="@array/settings_country_labels"
+        android:entryValues="@array/settings_country_values"
+        android:key="@string/settings_country_key"
+        android:title="@string/settings_country_label" />
+
 </PreferenceScreen>

@@ -58,9 +58,9 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
 
         // Find a reference to the {@link ListView} in the layout
-        ListView earthquakeListView = (ListView) findViewById(R.id.list);
+        ListView earthquakeListView = findViewById(R.id.list);
 
-        EmptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        EmptyStateTextView = findViewById(R.id.empty_view);
         earthquakeListView.setEmptyView(EmptyStateTextView);
 
         // Set the adapter on the {@link ListView}
@@ -126,7 +126,7 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         Uri.Builder uriBuilder = baseUri.buildUpon();
 
         uriBuilder.appendQueryParameter("format", "geojson");
-        uriBuilder.appendQueryParameter("limit", "10");
+        uriBuilder.appendQueryParameter("limit", "20000");
         uriBuilder.appendQueryParameter("minmag", minMagnitude);
         uriBuilder.appendQueryParameter("orderby", orderBy);
 
@@ -138,15 +138,18 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     public void onLoadFinished(Loader<ArrayList<Earthquake>> loader, ArrayList<Earthquake> earthquakes) {
         if (earthquakes.isEmpty())
             EmptyStateTextView.setText("No Earthquakes Found");
-        ProgressBar progressBar = (ProgressBar)findViewById(R.id.loading_spinner);
+        ProgressBar progressBar = findViewById(R.id.loading_spinner);
         progressBar.setVisibility(View.GONE);
         // Clear the adapter of previous earthquake data
         adapter.clear();
 
+        //filter earthquakes by country of choice from preferences
+        ArrayList<Earthquake> filteredEarthquakes = filterByCountry(earthquakes);
+
         // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
         // data set. This will trigger the ListView to update.
         if (earthquakes != null && !earthquakes.isEmpty()) {
-            adapter.addAll(earthquakes);
+            adapter.addAll(filteredEarthquakes);
         }
     }
 
@@ -173,5 +176,20 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         return super.onOptionsItemSelected(item);
     }
 
+    public ArrayList<Earthquake> filterByCountry(ArrayList<Earthquake> earthquakes) {
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String country = sharedPreferences.getString(getString(R.string.settings_country_key), getString(R.string.settings_country_default));
+
+        if (country.contentEquals("none"))
+            return earthquakes;
+
+        ArrayList<Earthquake> filteredEarthquakes = new ArrayList<Earthquake>();
+        for (int i = 0; i < earthquakes.size(); i++) {
+            if (earthquakes.get(i).getQuakeLocation().contains(country))
+                filteredEarthquakes.add(earthquakes.get(i));
+        }
+        return filteredEarthquakes;
+    }
 
 }
